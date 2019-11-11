@@ -1,0 +1,19 @@
+{
+  "name": "uiam-streaming",
+  "version": "0.0.1",
+  "description": "Streaming video",
+  "main": "server.js",
+  "engines": {
+    "node": ">=10.14.2"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Grzegorz Cieśla",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7"
+  }
+}
