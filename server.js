@@ -5,9 +5,13 @@ const app = express()
 
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname + '/index.htm'))
-})
+// app.get('/', function(req, res) {
+//   res.sendFile(path.join(__dirname + '/index.htm'))
+// })
+
+app.get('/express_backend', (req, res) => {
+  res.send({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' });
+});
 
 app.get('/video', function(req, res) {
   const path = 'assets/sample.mp4'
@@ -43,6 +47,9 @@ app.get('/video', function(req, res) {
   }
 })
 
-app.listen(3000, function () {
-  console.log('Listening on port 3000!')
+
+const PORT = 3001
+
+app.listen(PORT, function () {
+  console.log(`Listening on port ${PORT}!`)
 })
