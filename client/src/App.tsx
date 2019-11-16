@@ -1,35 +1,145 @@
 import React from 'react';
 import './App.css';
+// @ts-ignore
+import MediaCapturer from 'react-multimedia-capture'
 
 class App extends React.Component<any, any> {
-  state = {
-    data: null
-  };
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      granted: false,
+      rejectedReason: '',
+      recording: false,
+      paused: false
+    };
 
-  componentDidMount() {
-    // Call our fetch function below once the component mounts
-    this.callBackendAPI()
-        .then(res => this.setState({ data: res.express }))
-        .catch(err => console.log(err));
+    this.handleRequest = this.handleRequest.bind(this);
+    this.handleGranted = this.handleGranted.bind(this);
+    this.handleDenied = this.handleDenied.bind(this);
+    this.handleStart = this.handleStart.bind(this);
+    this.handleStop = this.handleStop.bind(this);
+    this.handlePause = this.handlePause.bind(this);
+    this.handleResume = this.handleResume.bind(this);
+    this.handleStreamClose = this.handleStreamClose.bind(this);
+    this.setStreamToVideo = this.setStreamToVideo.bind(this);
+    this.releaseStreamFromVideo = this.releaseStreamFromVideo.bind(this);
+    this.downloadVideo = this.downloadVideo.bind(this);
   }
+  handleRequest() {
+    console.log('Request Recording...');
+  }
+  handleGranted() {
+    this.setState({ granted: true });
+    console.log('Permission Granted!');
+  }
+  handleDenied(err: { name: any; }) {
+    this.setState({ rejectedReason: err.name });
+    console.log('Permission Denied!', err);
+  }
+  handleStart(stream: any) {
+    this.setState({
+      recording: true
+    });
 
-  callBackendAPI = async () => {
-    const response = await fetch('/express_backend');
-    const body = await response.json();
+    this.setStreamToVideo(stream);
+    console.log('Recording Started.');
+  }
+  handleStop(blob: any) {
+    this.setState({
+      recording: false
+    });
 
-    if (response.status !== 200) {
-      throw Error(body.message)
+    this.releaseStreamFromVideo();
+
+    console.log('Recording Stopped.');
+    this.downloadVideo(blob);
+  }
+  handlePause() {
+    this.releaseStreamFromVideo();
+
+    this.setState({
+      paused: true
+    });
+  }
+  handleResume(stream: any) {
+    this.setStreamToVideo(stream);
+
+    this.setState({
+      paused: false
+    });
+  }
+  handleError(err: any) {
+    console.log(err);
+  }
+  handleStreamClose() {
+    this.setState({
+      granted: false
+    });
+  }
+  setStreamToVideo(stream: any) {
+    // @ts-ignore
+    let video = this.refs.app.querySelector('video');
+
+    if(window.URL) {
+      video.src = window.URL.createObjectURL(stream);
     }
-    return body;
-  };
+    else {
+      video.src = stream;
+    }
+  }
+  releaseStreamFromVideo() {
+    // @ts-ignore
+    this.refs.app.querySelector('video').src = '';
+  }
+  downloadVideo(blob: any) {
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.target = '_blank';
+    document.body.appendChild(a);
 
+    a.click();
+  }
   render() {
+    const granted = this.state.granted;
+    const rejectedReason = this.state.rejectedReason;
+    const recording = this.state.recording;
+    const paused = this.state.paused;
+
     return (
-        <div className="App">
-          <p className="App-intro">{this.state.data}</p>
-          <video id="videoPlayer" controls>
-            <source src="http://localhost:3001/video" type="video/mp4"/>
-          </video>
+        <div ref="app">
+          <h3>Video Recorder</h3>
+          <MediaCapturer
+              constraints={{ audio: true, video: true }}
+              timeSlice={10}
+              onRequestPermission={this.handleRequest}
+              onGranted={this.handleGranted}
+              onDenied={this.handleDenied}
+              onStart={this.handleStart}
+              onStop={this.handleStop}
+              onPause={this.handlePause}
+              onResume={this.handleResume}
+              onError={this.handleError}
+              onStreamClosed={this.handleStreamClose}
+              // @ts-ignore
+              render={({ request, start, stop, pause, resume }) =>
+                  <div>
+                    <p>Granted: {granted.toString()}</p>
+                    <p>Rejected Reason: {rejectedReason}</p>
+                    <p>Recording: {recording.toString()}</p>
+                    <p>Paused: {paused.toString()}</p>
+
+                    {!granted && <button onClick={request}>Get Permission</button>}
+                    <button onClick={start}>Start</button>
+                    <button onClick={stop}>Stop</button>
+                    <button onClick={pause}>Pause</button>
+                    <button onClick={resume}>Resume</button>
+
+                    <p>Streaming test</p>
+                    <video autoPlay></video>
+                  </div>
+              } />
         </div>
     );
   }
