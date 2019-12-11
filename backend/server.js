@@ -13,6 +13,10 @@ app.get('/express_backend', (req, res) => {
   res.send({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' });
 });
 
+app.post('/video', (req, res) => {
+  console.log("poszedł post")
+})
+
 app.get('/video', function(req, res) {
   const path = 'assets/sample.mp4'
   const stat = fs.statSync(path)
